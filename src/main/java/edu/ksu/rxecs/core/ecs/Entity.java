@@ -1,5 +1,9 @@
 package edu.ksu.rxecs.core.ecs;
 
-public final class Entity {
+import reactor.core.publisher.Flux;
+
+public interface Entity {
+
+    Flux<Component> getComponents();
 
 }

@@ -36,10 +36,6 @@
         <!-- reactor -->
         <reactor.groupId>io.projectreactor</reactor.groupId>
         <reactor.version>RELEASE</reactor.version>
-
-
-        <fastutils.groupId>it.unimi.dsi</fastutils.groupId>
-        <fastutils.version>8.2.2</fastutils.version>
     </properties>
 
     <dependencies>
@@ -93,13 +89,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- fastutils high-performance collections-->
-        <!--<dependency>-->
-            <!--<groupId>${fastutils.groupId}</groupId>-->
-            <!--<artifactId>fastutil</artifactId>-->
-            <!--<version>${fastutils.version}</version>-->
-        <!--</dependency>-->
-
+        <!-- -->
         <dependency>
             <groupId>com.goldmansachs</groupId>
             <artifactId>gs-collections-api</artifactId>

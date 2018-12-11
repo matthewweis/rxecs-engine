@@ -1,11 +1,9 @@
 package edu.ksu.rxecs.core.ecs;
 
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectSets;
 
-import java.util.List;
-import java.util.Set;
+import com.gs.collections.api.set.ImmutableSet;
+import com.gs.collections.impl.factory.Sets;
+import edu.ksu.rxecs.core.ecs.component.MutableComponent;
 
 /**
  * health: gravitySystem, buffSystem, debuffSystem, bulletSystem...
@@ -17,46 +15,73 @@ import java.util.Set;
  *  * if system provides a component to handle, it must automatically loop over that component
  *
  */
-public abstract class EntitySystem {
+public abstract class EntitySystem<T extends MutableComponent> {
 
-    private final Class<Component> owns;
-    private final Set<Class<Component>> borrows;
+    private final Class<T> owns;
+    private final ImmutableSet<Class<? extends Component>> borrows;
+    private final ImmutableSet<Class<? extends Component>> uses;
 
-    protected EntitySystem(Class<Component> owns, Class<Component> ... borrows) {
+    protected EntitySystem(Class<T> owns, Class<? extends Component> ... borrows) {
         this.owns = owns;
-        this.borrows = ObjectSets.unmodifiable(new ObjectOpenHashSet<>(borrows));
+        this.borrows = Sets.immutable.of(borrows);
+        this.uses = this.borrows.newWith(owns);
     }
 
     /**
-     * Override this method for code to be executed before {@link #update()}.
+     * Override this method for code to be executed before {@link #update(ImmutableSet)}.
      */
     protected void beforeUpdate() { }
 
     /**
      * Executed on each update.
      */
-    protected abstract void update();
+//    protected abstract void update(ImmutableBag entities);
+    protected abstract void update(T ownedComponent, ImmutableSet<Component> entityView);
 
     /**
-     * Override this method for code to be executed after {@link #update()}.
+     * Override this method for code to be executed after {@link #update(ImmutableSet)}.
      */
     protected void afterUpdate() { }
 
     /**
      * Executed on start.
      */
-    protected void start() { }
+    protected void init() { }
 
     /**
      * Executed on stop.
      */
-    protected void stop() { }
+    protected void close() { }
 
-    public final Class<Component> getOwnedComponent() {
+//    public final Class<? extends Component> getOwnedComponent() {
+//        return owns;
+//    }
+//
+//    public final ImmutableSet<Class<? extends Component>> getBorrowedComponents() {
+//        return borrows;
+//    }
+
+    public final boolean uses(Class<? extends Component> component) {
+        return uses.contains(component);
+    }
+
+    public final boolean owns(Class<? extends Component> component) {
+        return owns.equals(component);
+    }
+
+    public final boolean borrows(Class<? extends Component> component) {
+        return borrows.contains(component);
+    }
+
+    public final ImmutableSet<Class<? extends Component>> uses() {
+        return uses;
+    }
+
+    public final Class<? extends Component> owns() {
         return owns;
     }
 
-    public final Set<Class<Component>> getBorrowedComponents() {
+    public final ImmutableSet<Class<? extends Component>>  borrows() {
         return borrows;
     }
 

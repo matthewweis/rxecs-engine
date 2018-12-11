@@ -1,49 +1,45 @@
 package edu.ksu.rxecs.predef;
 
-import edu.ksu.rxecs.core.Channel;
-import edu.ksu.rxecs.core.stages.partial.Downstream;
-import edu.ksu.rxecs.core.Stage;
-import edu.ksu.rxecs.core.stages.partial.Upstream;
-import reactor.core.publisher.Flux;
+import edu.ksu.rxecs.core.ecs.*;
+import edu.ksu.rxecs.core.ecs.system.TestSystem;
 
-import java.util.function.Function;
-
-public class TempRunner<T, R> implements Upstream<T>, Downstream<R> {
+public class TempRunner {
 
     public static void main(String[] args) {
 
+        TestSystem system = new TestSystem(Component1.class, Component2.class);
 
-        Stage<String, Character> s2;
+        Engine engine = Engine.builder().addSystem(system).build();
 
-        Flux<Integer> data = Flux.just(2, 3, 5, 7, 11, 13, 17, 19, 23, 29);
+        MutableEntity entity1 = new MutableEntity();
+        entity1.addComponent(new Component1());
+        entity1.addComponent(new Component2());
 
+        engine.addEntity(entity1);
 
+//        while (true) {
+            engine.update(1.0f/60.0f);
 
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+//        }
 
     }
 
-    @Override
-    public Flux<Stage<R, ?>> downstream() {
-        return null;
+    private static class Component1 extends Component {
+        @Override
+        public String toString() {
+            return "Component1{}";
+        }
     }
 
-    @Override
-    public Channel upstreamChannel() {
-        return null;
-    }
-
-    @Override
-    public Function<?, R> function() {
-        return null;
-    }
-
-    @Override
-    public Flux<Stage<?, T>> upstream() {
-        return null;
-    }
-
-    @Override
-    public Channel downstreamChannel() {
-        return null;
+    private static class Component2 extends Component {
+        @Override
+        public String toString() {
+            return "Component2{}";
+        }
     }
 }
