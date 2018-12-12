@@ -14,6 +14,8 @@ public abstract class EntitySystem {
 
     private final Class<? extends Component> owns;
 
+    boolean isPaused;
+
     protected EntitySystem(Class<? extends Component> owns) {
         this.owns = owns;
     }
@@ -34,14 +36,34 @@ public abstract class EntitySystem {
     protected void afterUpdate() { }
 
     /**
-     * Executed on start.
+     * Executed when paused.
+     * (Does not execute if {@link #pause()} is called while {@link EntitySystem} is already paused.
      */
-    protected void init() { }
+    protected void doWhenPaused() { }
 
     /**
-     * Executed on stop.
+     * Executed on resumed.
+     * (Does not execute if {@link #resume()} ()} is called while {@link EntitySystem} is not paused.
      */
-    protected void close() { }
+    protected void doWhenResumed() { }
+
+    public boolean isPaused() {
+        return isPaused;
+    }
+
+    public void pause() {
+        if (!isPaused) {
+            isPaused = true;
+            doWhenPaused();
+        }
+    }
+
+    public void resume() {
+        if (isPaused) {
+            isPaused = false;
+            doWhenResumed();
+        }
+    }
 
     public final boolean owns(Class<? extends Component> component) {
         return owns.equals(component);

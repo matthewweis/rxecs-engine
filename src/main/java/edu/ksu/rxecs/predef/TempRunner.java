@@ -108,12 +108,6 @@ public class TempRunner {
 
         while (true) {
             engine.update(1.0f/60.0f);
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
 
     }

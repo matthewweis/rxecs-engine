@@ -28,6 +28,7 @@ import reactor.util.function.Tuples;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -52,19 +53,32 @@ public class Engine {
 
     private final MutableBag<Entity> entities = Bags.mutable.empty();
 
-
-
     public final void update(float dt) {
         isProcessing = true;
 
-        Flux.fromIterable(components)
+        final CountDownLatch countDownLatch = new CountDownLatch(Profiling.getAvailableProcessors());
+
+        final Disposable subscription = Flux.fromIterable(components)
                 .map(cls -> Tuples.of(componentToOwnerMap.get(cls), componentToStorageMap.get(cls)))
-                .parallel()
+                .parallel(Profiling.getAvailableProcessors())
                 .runOn(Schedulers.parallel())
+                .doOnComplete(() -> { // this occurs for each
+                    countDownLatch.countDown();
+                    log.debug("parallel thread completed");
+                })
                 .subscribe(tuple -> tuple.getT2().iterator().forEachRemaining(
-                                component -> tuple.getT1().update(component, new EntitySnapshot(component.entity), dt)
-                        )
-        );
+                        component -> {
+                            tuple.getT1().update(component, new EntitySnapshot(component.entity), dt);
+                        })
+                );
+
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            log.error("InterruptedException thrown when awaiting parallel threads to complete.", e);
+        }
+
+        log.debug("all parallel tasks finished. update cycle completed." + subscription.isDisposed());
 
         isProcessing = false;
     }

@@ -14,6 +14,15 @@ public class TestSystem extends EntitySystem {
 
     @Override
     protected void update(Component ownedComponent, EntitySnapshot snapshot, float dt) {
+        // MOCK AN EXPENSIVE OPERATION
+        for (int i=0; i < 30000; i++) {
+            final double random = Math.random();
+            Math.sqrt(Integer.parseInt("230914122") * random);
+            Math.sqrt(Integer.parseInt("123499214") * random);
+            Math.sqrt(Integer.parseInt("999823983") * random);
+            Math.sqrt(Integer.parseInt("123241222") * random);
+            Math.sqrt(Integer.parseInt("123455678") * random);
+        }
         log.debug("testSystem update: " + ownedComponent.toString());
     }
 }
