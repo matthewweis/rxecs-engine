@@ -7,4 +7,5 @@ import edu.ksu.rxecs.core.ecs.Component;
  * {@link MutableComponent}s whenever editing is thread-safe.
  */
 public interface MutableComponent {
+
 }

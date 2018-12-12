@@ -39,6 +39,12 @@ public final class MutableEntity implements Entity {
         return components.put(component.getClass(), component);
     }
 
+    public void addComponent(@NonNull Component ... components) {
+        for (Component component : components) {
+            addComponent(component);
+        }
+    }
+
     public @Nullable Component removeComponent(@NonNull Class<? extends Component> component) {
         final Component removedComponent = components.remove(component);
         if (removedComponent != null) {

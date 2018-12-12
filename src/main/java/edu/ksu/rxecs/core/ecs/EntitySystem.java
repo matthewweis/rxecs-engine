@@ -1,10 +1,5 @@
 package edu.ksu.rxecs.core.ecs;
 
-
-import com.gs.collections.api.set.ImmutableSet;
-import com.gs.collections.impl.factory.Sets;
-import edu.ksu.rxecs.core.ecs.component.MutableComponent;
-
 /**
  * health: gravitySystem, buffSystem, debuffSystem, bulletSystem...
  *
@@ -15,29 +10,26 @@ import edu.ksu.rxecs.core.ecs.component.MutableComponent;
  *  * if system provides a component to handle, it must automatically loop over that component
  *
  */
-public abstract class EntitySystem<T extends Component> {
+public abstract class EntitySystem {
 
-    private final Class<T> owns;
-//    private final ImmutableSet<Class<? extends Component>> uses;
+    private final Class<? extends Component> owns;
 
-    protected EntitySystem(Class<T> owns) {
+    protected EntitySystem(Class<? extends Component> owns) {
         this.owns = owns;
-//        this.uses = this.borrows.newWith(owns);
     }
 
     /**
-     * Override this method for code to be executed before {@link #update(ImmutableSet)}.
+     * Override this method for code to be executed before {@link #update(Component, EntitySnapshot, float)}.
      */
     protected void beforeUpdate() { }
 
     /**
      * Executed on each update.
      */
-//    protected abstract void update(ImmutableBag entities);
-    protected abstract void update(T ownedComponent, EntitySnapshot snapshot, float dt);
+    protected abstract void update(Component ownedComponent, EntitySnapshot snapshot, float dt);
 
     /**
-     * Override this method for code to be executed after {@link #update(ImmutableSet)}.
+     * Override this method for code to be executed after {@link #update(Component, EntitySnapshot, float)}.
      */
     protected void afterUpdate() { }
 
@@ -51,36 +43,13 @@ public abstract class EntitySystem<T extends Component> {
      */
     protected void close() { }
 
-//    public final Class<? extends Component> getOwnedComponent() {
-//        return owns;
-//    }
-//
-//    public final ImmutableSet<Class<? extends Component>> getBorrowedComponents() {
-//        return borrows;
-//    }
-
-//    public final boolean uses(Class<? extends Component> component) {
-//        return uses.contains(component);
-//    }
-
     public final boolean owns(Class<? extends Component> component) {
         return owns.equals(component);
     }
 
-//    public final boolean borrows(Class<? extends Component> component) {
-//        return borrows.contains(component);
-//    }
-//
-//    public final ImmutableSet<Class<? extends Component>> uses() {
-//        return uses;
-//    }
 
     public final Class<? extends Component> owns() {
         return owns;
     }
-
-//    public final ImmutableSet<Class<? extends Component>>  borrows() {
-//        return borrows;
-//    }
 
 }

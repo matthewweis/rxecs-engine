@@ -52,25 +52,10 @@ public class Engine {
 
     private final MutableBag<Entity> entities = Bags.mutable.empty();
 
-//    private final WorkQueueProcessor<Tuple2<EntitySystem, MutableBag<Component>>> workQueueProcessor =
-//            createNewWorkQueueProcessor();
 
-    // wqp usage: "onNext" all to process, subscribe N times (for round-robin over N). do drain as well for threads.
 
     public final void update(float dt) {
         isProcessing = true;
-
-//        // setup parallel update passes
-//        final Disposable subscribe = Flux.fromIterable(components)
-//                .map(cls -> Tuples.of(componentToOwnerMap.get(cls), componentToStorageMap.get(cls)))
-////                .subscribeOn(Schedulers.parallel())
-//                .subscribe(workQueueProcessor::onNext, Throwable::printStackTrace);
-
-        // subscribe update passes on workQueueProcessor
-//        for (int i=0; i < Profiling.getAvailableProcessors() - 1; i++) {
-//            workQueueProcessor.subscribe(tuple -> tuple.getT2().iterator()
-//                    .forEachRemaining(component -> tuple.getT1().update(component, new EntitySnapshot(component.entity))));
-//        }
 
         Flux.fromIterable(components)
                 .map(cls -> Tuples.of(componentToOwnerMap.get(cls), componentToStorageMap.get(cls)))
@@ -80,14 +65,6 @@ public class Engine {
                                 component -> tuple.getT1().update(component, new EntitySnapshot(component.entity), dt)
                         )
         );
-
-//        workQueueProcessor.drain().parallel().runOn(Schedulers.parallel())
-//                .subscribe(tuple -> tuple.getT2().iterator().forEachRemaining(component -> tuple.getT1().update(component, new EntitySnapshot(component.entity))));
-
-//        workQueueProcessor.subscribe(tuple -> tuple.getT2().iterator()
-//                .forEachRemaining(component -> tuple.getT1().update(component, new EntitySnapshot(component.entity))));
-
-
 
         isProcessing = false;
     }
@@ -115,6 +92,12 @@ public class Engine {
         }
     }
 
+    public final void addEntity(Entity ... entities) {
+        for (Entity entity : entities) {
+            addEntity(entity);
+        }
+    }
+
     public final boolean removeEntity(Entity entity) {
         synchronized (entities) {
             if (entities.contains(entity)) {
@@ -130,15 +113,6 @@ public class Engine {
         synchronized (entities) {
             return entities.contains(entity);
         }
-    }
-
-    private void throwNewUnmanagedComponentAddedException(Entity entity, Component component) {
-        final String errorMsg = "Engine attempted to add entity containing a component" +
-                " not owned by any system contained in the engine." +
-                "Entity: %s\n Component: %s\n";
-
-        log.error(errorMsg, entity.toString(), component.toString());
-        throw new RuntimeException(errorMsg);
     }
 
     private WorkQueueProcessor<Tuple2<EntitySystem, MutableBag<Component>>> createNewWorkQueueProcessor() {
@@ -159,49 +133,49 @@ public class Engine {
         /**
          * Change 1
          */
-//        this.components = Sets.immutable.withAll(Flux.fromIterable(systems)
-//                .map(EntitySystem::owns).collectList().block());
 
-        final Iterator<EntitySystem> iter1 = systems.iterator();
-        final MutableSet<Class<? extends Component>> set1 = Sets.mutable.empty();
-        while (iter1.hasNext()) {
-            set1.add(iter1.next().owns());
-        }
-        this.components = set1.toImmutable();
+        final List<? extends Class<? extends Component>> collect = systems.stream().map(sys -> sys.owns()).collect(Collectors.toList());
+
+        this.components = Sets.immutable.withAll(
+//                Flux.fromIterable(systems).map(EntitySystem::owns).collectList().block()
+                collect
+        );
+
+//        final Iterator<EntitySystem> iter1 = systems.iterator();
+//        final MutableSet<Class<? extends Component>> set1 = Sets.mutable.empty();
+//        while (iter1.hasNext()) {
+//            set1.add(iter1.next().owns());
+//        }
+//        this.components = set1.toImmutable();
 
         /**
          * Change 2
          */
 
-//        this.componentToOwnerMap = Maps.immutable.withAll(
-//                systems.stream() // ? check this, want .class
-//                        .collect(Collectors.toUnmodifiableMap(EntitySystem::owns, sys -> sys))
-//        );
+        this.componentToOwnerMap = Maps.immutable.withAll(
+                systems.stream() // ? check this, want .class
+                        .collect(Collectors.toUnmodifiableMap(EntitySystem::owns, sys -> sys))
+        );
 
-        final Iterator<EntitySystem> iter2 = systems.iterator();
-        final MutableMap<Class<? extends Component>, EntitySystem> map1 = Maps.mutable.empty();
-        while (iter2.hasNext()) {
-            final EntitySystem next = iter2.next();
-            map1.put(next.owns(), next);
-        }
-        this.componentToOwnerMap = map1.toImmutable();
+//        final Iterator<EntitySystem> iter2 = systems.iterator();
+//        final MutableMap<Class<? extends Component>, EntitySystem> map1 = Maps.mutable.empty();
+//        while (iter2.hasNext()) {
+//            final EntitySystem next = iter2.next();
+//            map1.put(next.owns(), next);
+//        }
+//        this.componentToOwnerMap = map1.toImmutable();
 
         /**
          * Change 3
          */
 
         this.componentToStorageMap = Maps.immutable.withAll(
-                systems.stream()
-                        .collect(Collectors.toMap(sys -> sys.owns(), sys -> Bags.mutable.empty()))
+                systems.stream().collect(Collectors.toMap(sys -> sys.owns(), sys -> Bags.mutable.empty()))
         );
 
     }
 
     public static Builder builder() {
-        return new Builder();
-    }
-
-    public static Builder builder(int capacity) {
         return new Builder();
     }
 
@@ -216,18 +190,10 @@ public class Engine {
                     .anyMatch(c -> c.equals(system.owns()));
 
             if (predicate) {
-
-                final String warningString = String.format(
-                        "Conflicting ownership of component %s when adding system %s",
-                        system.owns().toString(),
-                        system.toString()
-                );
-
-                log.error(warningString);
-                throw new RuntimeException(warningString);
+                throwNewConflictingComponentOwnershipException(system);
             } else {
                 systems.add(system);
-                log.debug("System %s was added to Engine Builder", system.toString());
+                log.debug("System {} was added to Engine Builder", system.toString());
             }
             return this;
         }
@@ -245,6 +211,26 @@ public class Engine {
 
         private Builder() { }
 
+    }
+
+    private static void throwNewConflictingComponentOwnershipException(EntitySystem system) {
+        final String warningString = String.format(
+                "Conflicting ownership of component {} when adding system {}",
+                system.owns().toString(),
+                system.toString()
+        );
+
+        log.error(warningString);
+        throw new RuntimeException(warningString);
+    }
+
+    private static void throwNewUnmanagedComponentAddedException(Entity entity, Component component) {
+        final String errorMsg = "Engine attempted to add entity containing a component" +
+                " not owned by any system contained in the engine." +
+                "Entity: {}\n Component: {}\n";
+
+        log.error(errorMsg, entity.toString(), component.toString());
+        throw new RuntimeException(errorMsg);
     }
 
     public enum MemoryStrategy {
