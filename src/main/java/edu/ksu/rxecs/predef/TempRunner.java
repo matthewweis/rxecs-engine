@@ -7,9 +7,10 @@ public class TempRunner {
 
     public static void main(String[] args) {
 
-        TestSystem system = new TestSystem(Component1.class, Component2.class);
+        TestSystem system1 = new TestSystem(Component1.class);
+        TestSystem system2 = new TestSystem(Component2.class);
 
-        Engine engine = Engine.builder().addSystem(system).build();
+        Engine engine = Engine.builder().addSystem(system1, system2).build();
 
         MutableEntity entity1 = new MutableEntity();
         entity1.addComponent(new Component1());
@@ -30,16 +31,28 @@ public class TempRunner {
     }
 
     private static class Component1 extends Component {
+        public int data = 1;
+
         @Override
         public String toString() {
-            return "Component1{}";
+            return "Component1{" +
+                    "data=" + data +
+                    '}';
         }
     }
 
     private static class Component2 extends Component {
+        public int data = 5;
+
         @Override
         public String toString() {
-            return "Component2{}";
+            return "Component2{" +
+                    "data=" + data +
+                    '}';
         }
+    }
+
+    private static void get(Class<? extends Component> cls) {
+        return;
     }
 }

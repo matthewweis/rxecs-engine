@@ -1,25 +1,19 @@
 package edu.ksu.rxecs.core.ecs.system;
 
-import com.gs.collections.api.bag.ImmutableBag;
 import edu.ksu.rxecs.core.ecs.Component;
+import edu.ksu.rxecs.core.ecs.EntitySnapshot;
 import edu.ksu.rxecs.core.ecs.EntitySystem;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.Iterator;
-import java.util.Set;
-
+@Slf4j
 public class TestSystem extends EntitySystem {
 
-    @SafeVarargs
-    public TestSystem(Class<? extends Component> owns, Class<? extends Component> ... borrows) {
-        super(owns, borrows);
+    public TestSystem(Class<? extends Component> owns) {
+        super(owns);
     }
 
     @Override
-    protected void update(ImmutableBag entities) {
-        final Iterator iterator = entities.iterator();
-        while (iterator.hasNext()) {
-            System.out.print(iterator.next().toString());
-        }
+    protected void update(Component ownedComponent, EntitySnapshot snapshot, float dt) {
+        log.debug("testSystem update: " + ownedComponent.toString());
     }
-
 }

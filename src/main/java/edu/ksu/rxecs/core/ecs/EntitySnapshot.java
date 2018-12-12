@@ -7,7 +7,7 @@ public final class EntitySnapshot implements Entity {
 
     private final ImmutableSet<Component> components;
 
-    public EntitySnapshot(MutableEntity entity) {
+    EntitySnapshot(MutableEntity entity) {
         this.components = entity.getComponentsImmutableSet();
     }
 

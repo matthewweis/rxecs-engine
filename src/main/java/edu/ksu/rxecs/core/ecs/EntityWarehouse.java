@@ -6,6 +6,4 @@ final class EntityWarehouse {
 
     private final int capacity = 512;
 
-
-
 }

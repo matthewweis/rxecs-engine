@@ -15,16 +15,14 @@ import edu.ksu.rxecs.core.ecs.component.MutableComponent;
  *  * if system provides a component to handle, it must automatically loop over that component
  *
  */
-public abstract class EntitySystem<T extends MutableComponent> {
+public abstract class EntitySystem<T extends Component> {
 
     private final Class<T> owns;
-    private final ImmutableSet<Class<? extends Component>> borrows;
-    private final ImmutableSet<Class<? extends Component>> uses;
+//    private final ImmutableSet<Class<? extends Component>> uses;
 
-    protected EntitySystem(Class<T> owns, Class<? extends Component> ... borrows) {
+    protected EntitySystem(Class<T> owns) {
         this.owns = owns;
-        this.borrows = Sets.immutable.of(borrows);
-        this.uses = this.borrows.newWith(owns);
+//        this.uses = this.borrows.newWith(owns);
     }
 
     /**
@@ -36,7 +34,7 @@ public abstract class EntitySystem<T extends MutableComponent> {
      * Executed on each update.
      */
 //    protected abstract void update(ImmutableBag entities);
-    protected abstract void update(T ownedComponent, ImmutableSet<Component> entityView);
+    protected abstract void update(T ownedComponent, EntitySnapshot snapshot, float dt);
 
     /**
      * Override this method for code to be executed after {@link #update(ImmutableSet)}.
@@ -61,28 +59,28 @@ public abstract class EntitySystem<T extends MutableComponent> {
 //        return borrows;
 //    }
 
-    public final boolean uses(Class<? extends Component> component) {
-        return uses.contains(component);
-    }
+//    public final boolean uses(Class<? extends Component> component) {
+//        return uses.contains(component);
+//    }
 
     public final boolean owns(Class<? extends Component> component) {
         return owns.equals(component);
     }
 
-    public final boolean borrows(Class<? extends Component> component) {
-        return borrows.contains(component);
-    }
-
-    public final ImmutableSet<Class<? extends Component>> uses() {
-        return uses;
-    }
+//    public final boolean borrows(Class<? extends Component> component) {
+//        return borrows.contains(component);
+//    }
+//
+//    public final ImmutableSet<Class<? extends Component>> uses() {
+//        return uses;
+//    }
 
     public final Class<? extends Component> owns() {
         return owns;
     }
 
-    public final ImmutableSet<Class<? extends Component>>  borrows() {
-        return borrows;
-    }
+//    public final ImmutableSet<Class<? extends Component>>  borrows() {
+//        return borrows;
+//    }
 
 }
