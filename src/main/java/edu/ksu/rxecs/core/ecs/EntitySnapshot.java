@@ -16,4 +16,6 @@ public final class EntitySnapshot implements Entity {
         return Flux.fromIterable(components);
     }
 
+
+
 }

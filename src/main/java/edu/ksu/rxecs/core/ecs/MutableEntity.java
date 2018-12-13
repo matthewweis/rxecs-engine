@@ -10,20 +10,21 @@ import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
 
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public final class MutableEntity implements Entity {
 
-    private final MutableMap<Class<? extends Component>, Component> components = Maps.mutable.empty();
+    final MutableMap<Class<? extends Component>, ChronoBox> components = Maps.mutable.empty();
 
     public MutableEntity() { }
 
     @Override
     public Flux<Component> getComponents() {
-        return Flux.fromIterable(components.values());
+        return Flux.fromIterable(components.values()).map(box -> box.then());
     }
 
     public Component getComponent(Class<? extends Component> component) {
-        return components.get(component);
+        return components.get(component).then();
     }
 
     /**
@@ -31,33 +32,41 @@ public final class MutableEntity implements Entity {
      * @param component the new component to include. Only one per class will be kept for an entity.
      * @return the last (now removed) component if one was removed to add the new component
      */
-    public @Nullable Component addComponent(@NonNull Component component) {
+    public void addComponent(@NonNull Component component, Engine engine) {
         if (component.entity != null) {
             throw new RuntimeException("Component added which was already associated with another entity.");
         }
         component.entity = this;
-        return components.put(component.getClass(), component);
+
+        if (components.containsKey(component.getClass())) {
+
+            // remove existing
+            engine.componentToStorageMap.get(component.getClass()).remove(components.get(component.getClass()));
+            components.remove(component.getClass());
+        }
+
+        final ChronoBox box = new ChronoBox(component);
+        engine.componentToStorageMap.get(component.getClass()).add(box);
+        components.put(component.getClass(), box);
+
     }
 
-    void swapComponent(@NonNull Component component) {
-        components.put(component.getClass(), component);
-    }
-
-    public void addComponent(@NonNull Component ... components) {
+    public void addComponent(Engine engine, @NonNull Component ... components) {
         for (Component component : components) {
-            addComponent(component);
+            addComponent(component, engine);
         }
     }
 
-    public @Nullable Component removeComponent(@NonNull Class<? extends Component> component) {
-        final Component removedComponent = components.remove(component);
+    public void removeComponent(@NonNull Class<? extends Component> component, Engine engine) {
+        final ChronoBox removedComponent = components.remove(component);
+        engine.componentToStorageMap.get(component).remove(removedComponent);
         if (removedComponent != null) {
-            if (removedComponent.entity == null) {
+            if (removedComponent.now().entity == null || removedComponent.then().entity == null) {
                 throw new RuntimeException("Component should never lose entity association before removal.");
             }
-            removedComponent.entity = null;
+            removedComponent.now().entity = null; // prevent memory leaks
+            removedComponent.then().entity = null; // prevent memory leaks
         }
-        return removedComponent;
     }
 
     public boolean containsComponent(@NonNull Class<? extends Component> component) {
@@ -65,11 +74,11 @@ public final class MutableEntity implements Entity {
     }
 
     protected ImmutableSet<Component> getComponentsImmutableSet() {
-        return Sets.immutable.ofAll(components.values());
+        return Sets.immutable.ofAll(components.values().parallelStream().map(box -> box.then()).collect(Collectors.toList()));
     }
 
     protected MutableSet<Component> getComponentsSet() {
-        return Sets.mutable.ofAll(components.values());
+        return Sets.mutable.ofAll(components.values().parallelStream().map(box -> box.then()).collect(Collectors.toList()));
     }
 
     @Override

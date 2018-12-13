@@ -18,7 +18,6 @@ import reactor.util.concurrent.WaitStrategy;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -39,58 +38,36 @@ public class Engine {
     final ImmutableMap<Class<? extends Component>, EntitySystem> componentToOwnerMap;
 
     @Getter
-    ImmutableMap<Class<? extends Component>, MutableBag<Component>> componentToStorageMapLast;
+    ImmutableMap<Class<? extends Component>, MutableBag<ChronoBox>> componentToStorageMap;
 
     private final MutableBag<Entity> entities = Bags.mutable.empty();
 
     private Engine(MutableBag<EntitySystem> systems) {
         this.systems = Sets.immutable.withAll(systems);
 
-        /**
-         * Change 1
-         */
-
-        final List<Class<Component>> collect =
-//                systems.stream().map(sys -> sys.owns())
-                systems.stream().map(sys -> sys.owns()).collect(Collectors.toList());
-
         this.components = Sets.immutable.withAll(
-//                Flux.fromIterable(systems).map(EntitySystem::owns).collectList().block()
-                collect
+                systems.stream().map(sys -> sys.owns()).collect(Collectors.toList())
         );
 
-//        final Iterator<EntitySystem> iter1 = systems.iterator();
-//        final MutableSet<Class<? extends Component>> set1 = Sets.mutable.empty();
-//        while (iter1.hasNext()) {
-//            set1.add(iter1.next().owns());
-//        }
-//        this.components = set1.toImmutable();
-
-        /**
-         * Change 2
-         */
-
         this.componentToOwnerMap = Maps.immutable.withAll(
-                systems.stream() // ? check this, want .class
+                systems.stream()
                         .collect(Collectors.toUnmodifiableMap(EntitySystem::owns, sys -> sys))
         );
 
-//        final Iterator<EntitySystem> iter2 = systems.iterator();
-//        final MutableMap<Class<? extends Component>, EntitySystem> map1 = Maps.mutable.empty();
-//        while (iter2.hasNext()) {
-//            final EntitySystem next = iter2.next();
-//            map1.put(next.owns(), next);
-//        }
-//        this.componentToOwnerMap = map1.toImmutable();
-
-        /**
-         * Change 3
-         */
-
-        this.componentToStorageMapLast = Maps.immutable.withAll(
+        this.componentToStorageMap = Maps.immutable.withAll(
                 systems.stream().collect(Collectors.toMap(sys -> sys.owns(), sys -> Bags.mutable.empty()))
         );
 
+    }
+
+    public final Flux<Component> observe(Component component) {
+        for (ChronoBox box : componentToStorageMap.get(component.getClass())) {
+            if (box.now().equals(component)) {
+                return Flux.from(box);
+            }
+        }
+        System.out.println("ERROR SUBSCRIBING");
+        return Flux.never();
     }
 
     public final void update(float dt) {
@@ -99,7 +76,7 @@ public class Engine {
         final CountDownLatch countDownLatch = new CountDownLatch(Profiling.getAvailableProcessors());
 
         final Disposable subscription = Flux.fromIterable(components)
-                .map(cls -> Tuples.of(componentToOwnerMap.get(cls), componentToStorageMapLast.get(cls)))
+                .map(cls -> Tuples.of(componentToOwnerMap.get(cls), componentToStorageMap.get(cls)))
                 .parallel(Profiling.getAvailableProcessors())
                 .runOn(Schedulers.parallel())
                 .doOnComplete(() -> { // this occurs for each
@@ -107,11 +84,16 @@ public class Engine {
                     log.debug("parallel thread completed");
                 })
                 .subscribe(tuple -> {
-                    tuple.getT2().forEach((Consumer<? super Component>) component -> {
+                    tuple.getT2().forEach((Consumer<? super ChronoBox>) box -> {
 //                                final Component ownedComponent = (Component) component.clone();
-                                component.clone = component._this;
-//                                componentToStorageMapLast.get(null).
-                                tuple.getT1().update(component.clone, new EntitySnapshot(component._this.entity), dt);
+//                                componentToStorageMap.get(null).
+                        tuple.getT1().update(box.now(), new EntitySnapshot(box.then().entity), dt);
+
+//                        if (box.now instanceof TempRunner.Component4) {
+//                            Object x = box.now;
+//                            Object y = box.then;
+//                        }
+
                             });
                         }
                 );
@@ -123,10 +105,10 @@ public class Engine {
         }
 
         // following the countdown shove returned components into
-        componentToStorageMapLast.forEach((Consumer<? super MutableBag<Component>>) bag -> {
-            bag.forEach((Consumer<? super Component>) component -> {
-                component._this = component.clone;
-                component.clone = null;
+        componentToStorageMap.forEach((Consumer<? super MutableBag<ChronoBox>>) bag -> {
+            bag.forEach((Consumer<? super ChronoBox>) box -> {
+                log.debug(box.then() + " -> " + box.now());
+                box.advance();
             });
         });
 
@@ -135,20 +117,21 @@ public class Engine {
         isProcessing = false;
     }
 
-    public final boolean addEntity(Entity entity) {
+    public final boolean addEntity(MutableEntity entity) {
         synchronized (entities) {
             if (!entities.contains(entity)) {
                 entity.getComponents()
                         .subscribeOn(Schedulers.immediate())
                         .subscribe(component -> {
-                                    final MutableBag<Component> bag = componentToStorageMapLast.get(component.getClass());
+                                    final MutableBag<ChronoBox> bag = componentToStorageMap.get(component.getClass());
 
                                     if (bag == null) {
                                         throwNewUnmanagedComponentAddedException(entity, component);
                                     } else {
-                                        bag.add(component);
+                                        if (!bag.contains(entity.components.get(component.getClass()))) {
+                                            bag.add(new ChronoBox(component));
+                                        }
                                     }
-
                                 },
                                 Throwable::printStackTrace);
                 return entities.add(entity);
@@ -167,7 +150,7 @@ public class Engine {
     public final boolean removeEntity(Entity entity) {
         synchronized (entities) {
             if (entities.contains(entity)) {
-                entity.getComponents().subscribe(component -> componentToStorageMapLast.get(component.getClass()).remove(component));
+                entity.getComponents().subscribe(component -> componentToStorageMap.get(component.getClass()).remove(component));
                 return entities.add(entity);
             } else {
                 return false;

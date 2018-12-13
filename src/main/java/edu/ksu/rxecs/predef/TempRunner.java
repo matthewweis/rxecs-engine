@@ -3,7 +3,7 @@ package edu.ksu.rxecs.predef;
 import edu.ksu.rxecs.core.ecs.Component;
 import edu.ksu.rxecs.core.ecs.Engine;
 import edu.ksu.rxecs.core.ecs.MutableEntity;
-import edu.ksu.rxecs.core.ecs.system.TestSystem;
+import edu.ksu.rxecs.core.ecs.TestSystem;
 
 public class TempRunner {
 
@@ -76,34 +76,34 @@ public class TempRunner {
 
 
         final MutableEntity entity_1 = new MutableEntity();
-        entity_1.addComponent(component1_1, component1_2, component1_3);
+        entity_1.addComponent(engine, component1_1, component1_2, component1_3);
 
         final MutableEntity entity_2 = new MutableEntity();
-        entity_1.addComponent(component2_1, component2_2, component2_3);
+        entity_1.addComponent(engine, component2_1, component2_2, component2_3);
 
         final MutableEntity entity_3 = new MutableEntity();
-        entity_1.addComponent(component3_1, component3_2, component3_3);
+        entity_1.addComponent(engine, component3_1, component3_2, component3_3);
 
         final MutableEntity entity_4 = new MutableEntity();
-        entity_1.addComponent(component4_1, component4_2, component4_3);
+        entity_1.addComponent(engine, component4_1, component4_2, component4_3);
 
         final MutableEntity entity_5 = new MutableEntity();
-        entity_1.addComponent(component5_1, component5_2, component5_3);
+        entity_1.addComponent(engine, component5_1, component5_2, component5_3);
 
         final MutableEntity entity_6 = new MutableEntity();
-        entity_1.addComponent(component6_1, component6_2, component6_3);
+        entity_1.addComponent(engine, component6_1, component6_2, component6_3);
 
         final MutableEntity entity_7 = new MutableEntity();
-        entity_1.addComponent(component7_1, component7_2, component7_3);
+        entity_1.addComponent(engine, component7_1, component7_2, component7_3);
 
         final MutableEntity entity_8 = new MutableEntity();
-        entity_1.addComponent(component8_1, component8_2, component8_3);
+        entity_1.addComponent(engine, component8_1, component8_2, component8_3);
 
         final MutableEntity entity_9 = new MutableEntity();
-        entity_1.addComponent(component9_1, component9_2, component9_3);
+        entity_1.addComponent(engine, component9_1, component9_2, component9_3);
 
         final MutableEntity entity_10 = new MutableEntity();
-        entity_1.addComponent(component10_1, component10_2, component10_3);
+        entity_1.addComponent(engine, component10_1, component10_2, component10_3);
 
         engine.addEntity(entity_1);
         engine.addEntity(entity_2);
@@ -136,6 +136,17 @@ public class TempRunner {
                     "data=" + data +
                     '}';
         }
+
+//        @Override
+//        public Object clone() {
+//            try {
+////            clone = (Component) super.clone();
+////            return clone;
+//                return super.clone();
+//            } catch(Exception e) {
+//                return null;
+//            }
+//        }
     }
 
     private static class Component2 extends MockC {
@@ -160,7 +171,7 @@ public class TempRunner {
         }
     }
 
-    private static class Component4 extends MockC {
+    public static class Component4 extends MockC {
 //        public int data = 4;
 
         @Override
