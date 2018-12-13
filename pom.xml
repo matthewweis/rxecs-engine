@@ -89,7 +89,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- -->
+        <!-- high performance collections including Bags-->
         <dependency>
             <groupId>com.goldmansachs</groupId>
             <artifactId>gs-collections-api</artifactId>
@@ -102,25 +102,19 @@
             <version>7.0.0</version>
         </dependency>
 
-        <!--<dependency>-->
-            <!--<groupId>com.goldmansachs</groupId>-->
-            <!--<artifactId>gs-collections-testutils</artifactId>-->
-            <!--<version>7.0.0</version>-->
-            <!--<scope>test</scope>-->
-        <!--</dependency>-->
+        <!-- -->
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.11</version>
+        </dependency>
 
-        <!--<dependency>-->
-            <!--<groupId>com.goldmansachs</groupId>-->
-            <!--<artifactId>gs-collections-forkjoin</artifactId>-->
-            <!--<version>7.0.0</version>-->
-        <!--</dependency>-->
-
-        <!-- google reflections for annotation scanning -->
-        <!--<dependency>-->
-            <!--<groupId>org.reflections</groupId>-->
-            <!--<artifactId>reflections</artifactId>-->
-            <!--<version>0.9.11</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>uk.com.robust-it</groupId>
+            <artifactId>cloning</artifactId>
+            <version>1.9.10</version>
+            <!--<type>bundle</type>-->
+        </dependency>
     </dependencies>
 
 </project>

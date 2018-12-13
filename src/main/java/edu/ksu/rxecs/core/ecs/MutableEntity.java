@@ -39,6 +39,10 @@ public final class MutableEntity implements Entity {
         return components.put(component.getClass(), component);
     }
 
+    void swapComponent(@NonNull Component component) {
+        components.put(component.getClass(), component);
+    }
+
     public void addComponent(@NonNull Component ... components) {
         for (Component component : components) {
             addComponent(component);

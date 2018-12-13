@@ -1,5 +1,6 @@
 package edu.ksu.rxecs.core.ecs.component;
 
+import edu.ksu.rxecs.core.annotations.Wire;
 import edu.ksu.rxecs.core.ecs.Component;
 
 /**

@@ -70,8 +70,8 @@ public abstract class EntitySystem {
     }
 
 
-    public final Class<? extends Component> owns() {
-        return owns;
+    public final <T extends Component> Class<T> owns() {
+        return (Class<T>) owns;
     }
 
 }

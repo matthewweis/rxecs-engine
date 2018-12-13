@@ -11,7 +11,23 @@ public abstract class Component implements Cloneable {
     @Nullable
     MutableEntity entity = null;
 
-    protected Component() {
+    @Nullable
+    Component _this = this;
+
+    @Nullable
+    Component clone = null;
+
+    @Override
+    public final Object clone() {
+        try {
+            clone = (Component) super.clone();
+            return clone;
+        } catch(Exception e) {
+            return null;
+        }
+    }
+
+    void step() {
 
     }
 

@@ -1,7 +1,8 @@
 package edu.ksu.rxecs.predef;
 
-import com.gs.collections.api.map.MutableMap;
-import edu.ksu.rxecs.core.ecs.*;
+import edu.ksu.rxecs.core.ecs.Component;
+import edu.ksu.rxecs.core.ecs.Engine;
+import edu.ksu.rxecs.core.ecs.MutableEntity;
 import edu.ksu.rxecs.core.ecs.system.TestSystem;
 
 public class TempRunner {
@@ -44,6 +45,10 @@ public class TempRunner {
         final Component component9_2 = new Component9();
         final Component component9_3 = new Component9();
 
+        final Component component10_1 = new Component10();
+        final Component component10_2 = new Component10();
+        final Component component10_3 = new Component10();
+
         final TestSystem system1 = new TestSystem(Component1.class);
         final TestSystem system2 = new TestSystem(Component2.class);
         final TestSystem system3 = new TestSystem(Component3.class);
@@ -53,6 +58,7 @@ public class TempRunner {
         final TestSystem system7 = new TestSystem(Component7.class);
         final TestSystem system8 = new TestSystem(Component8.class);
         final TestSystem system9 = new TestSystem(Component9.class);
+        final TestSystem system10 = new TestSystem(Component10.class);
 
 
         final Engine.Builder builder = Engine.builder();
@@ -65,6 +71,7 @@ public class TempRunner {
         builder.addSystem(system7);
         builder.addSystem(system8);
         builder.addSystem(system9);
+        builder.addSystem(system10);
         final Engine engine = builder.build();
 
 
@@ -95,6 +102,9 @@ public class TempRunner {
         final MutableEntity entity_9 = new MutableEntity();
         entity_1.addComponent(component9_1, component9_2, component9_3);
 
+        final MutableEntity entity_10 = new MutableEntity();
+        entity_1.addComponent(component10_1, component10_2, component10_3);
+
         engine.addEntity(entity_1);
         engine.addEntity(entity_2);
         engine.addEntity(entity_3);
@@ -104,6 +114,7 @@ public class TempRunner {
         engine.addEntity(entity_7);
         engine.addEntity(entity_8);
         engine.addEntity(entity_9);
+        engine.addEntity(entity_10);
 
 
         while (true) {
@@ -112,12 +123,12 @@ public class TempRunner {
 
     }
 
-    private static abstract class MockC extends Component {
-        abstract int getData();
+    public static abstract class MockC extends Component {
+        public int data = 1;
     }
 
-    private static class Component1 extends Component {
-        public int data = 1;
+    private static class Component1 extends MockC {
+//        public int data = 1;
 
         @Override
         public String toString() {
@@ -127,8 +138,8 @@ public class TempRunner {
         }
     }
 
-    private static class Component2 extends Component {
-        public int data = 2;
+    private static class Component2 extends MockC {
+//        public int data = 2;
 
         @Override
         public String toString() {
@@ -138,8 +149,8 @@ public class TempRunner {
         }
     }
 
-    private static class Component3 extends Component {
-        public int data = 3;
+    private static class Component3 extends MockC {
+//        public int data = 3;
 
         @Override
         public String toString() {
@@ -149,8 +160,8 @@ public class TempRunner {
         }
     }
 
-    private static class Component4 extends Component {
-        public int data = 4;
+    private static class Component4 extends MockC {
+//        public int data = 4;
 
         @Override
         public String toString() {
@@ -160,8 +171,8 @@ public class TempRunner {
         }
     }
 
-    private static class Component5 extends Component {
-        public int data = 5;
+    private static class Component5 extends MockC {
+//        public int data = 5;
 
         @Override
         public String toString() {
@@ -171,8 +182,8 @@ public class TempRunner {
         }
     }
 
-    private static class Component6 extends Component {
-        public int data = 6;
+    private static class Component6 extends MockC {
+//        public int data = 6;
 
         @Override
         public String toString() {
@@ -182,8 +193,8 @@ public class TempRunner {
         }
     }
 
-    private static class Component7 extends Component {
-        public int data = 7;
+    private static class Component7 extends MockC {
+//        public int data = 7;
 
         @Override
         public String toString() {
@@ -193,8 +204,8 @@ public class TempRunner {
         }
     }
 
-    private static class Component8 extends Component {
-        public int data = 8;
+    private static class Component8 extends MockC {
+//        public int data = 8;
 
         @Override
         public String toString() {
@@ -204,8 +215,8 @@ public class TempRunner {
         }
     }
 
-    private static class Component9 extends Component {
-        public int data = 9;
+    private static class Component9 extends MockC {
+//        public int data = 9;
 
         @Override
         public String toString() {
@@ -215,30 +226,15 @@ public class TempRunner {
         }
     }
 
-    private static Component[] makeComponents(int offset) {
-        final MockC[] components = new MockC[20];
-        for (int i=0; i < components.length; i++) {
-            final int j = i + offset;
-            components[i] = new MockC() {
-                final int data = j;
-                @Override
-                int getData() {
-                    return data;
-                }
+    private static class Component10 extends MockC {
+//        public int data = 10;
 
-                @Override
-                public String toString() {
-                    return "$classname{" +
-                            "data=" + data +
-                            '}';
-                }
-            };
+        @Override
+        public String toString() {
+            return "Component10{" +
+                    "data=" + data +
+                    '}';
         }
-        return components;
     }
 
-
-    private static void get(Class<? extends Component> cls) {
-        return;
-    }
 }
