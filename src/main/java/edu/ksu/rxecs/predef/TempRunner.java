@@ -3,7 +3,7 @@ package edu.ksu.rxecs.predef;
 import edu.ksu.rxecs.core.ecs.Component;
 import edu.ksu.rxecs.core.ecs.Engine;
 import edu.ksu.rxecs.core.ecs.MutableEntity;
-import edu.ksu.rxecs.core.ecs.TestSystem;
+import edu.ksu.rxecs.core.ecs.system.TestSystem;
 
 public class TempRunner {
 
@@ -118,7 +118,7 @@ public class TempRunner {
 
 
         while (true) {
-            engine.update(1.0f/60.0f);
+            engine.update(1.0f / 60.0f);
         }
 
     }

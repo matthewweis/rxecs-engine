@@ -26,21 +26,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Engine {
 
-    private volatile boolean isProcessing;
-
-    @Getter
-    private final ImmutableSet<EntitySystem> systems;
-
     @Getter
     final ImmutableSet<Class<? extends Component>> components;
-
     @Getter
     final ImmutableMap<Class<? extends Component>, EntitySystem> componentToOwnerMap;
-
+    @Getter
+    private final ImmutableSet<EntitySystem> systems;
+    private final MutableBag<Entity> entities = Bags.mutable.empty();
     @Getter
     ImmutableMap<Class<? extends Component>, MutableBag<ChronoBox>> componentToStorageMap;
-
-    private final MutableBag<Entity> entities = Bags.mutable.empty();
+    private volatile boolean isProcessing;
 
     private Engine(MutableBag<EntitySystem> systems) {
         this.systems = Sets.immutable.withAll(systems);
@@ -58,6 +53,30 @@ public class Engine {
                 systems.stream().collect(Collectors.toMap(sys -> sys.owns(), sys -> Bags.mutable.empty()))
         );
 
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    private static void throwNewConflictingComponentOwnershipException(EntitySystem system) {
+        final String warningString = String.format(
+                "Conflicting ownership of component {} when adding system {}",
+                system.owns().toString(),
+                system.toString()
+        );
+
+        log.error(warningString);
+        throw new RuntimeException(warningString);
+    }
+
+    private static void throwNewUnmanagedComponentAddedException(Entity entity, Component component) {
+        final String errorMsg = "Engine attempted to add entity containing a component" +
+                " not owned by any system contained in the engine." +
+                "Entity: {}\n Component: {}\n";
+
+        log.error(errorMsg, entity.toString(), component.toString());
+        throw new RuntimeException(errorMsg);
     }
 
     public final Flux<Component> observe(Component component) {
@@ -84,19 +103,12 @@ public class Engine {
                     log.debug("parallel thread completed");
                 })
                 .subscribe(tuple -> {
+                    tuple.getT1().beforeUpdate();
                     tuple.getT2().forEach((Consumer<? super ChronoBox>) box -> {
-//                                final Component ownedComponent = (Component) component.clone();
-//                                componentToStorageMap.get(null).
                         tuple.getT1().update(box.now(), new EntitySnapshot(box.then().entity), dt);
-
-//                        if (box.now instanceof TempRunner.Component4) {
-//                            Object x = box.now;
-//                            Object y = box.then;
-//                        }
-
-                            });
-                        }
-                );
+                    });
+                    tuple.getT1().afterUpdate();
+                });
 
         try {
             countDownLatch.await();
@@ -123,13 +135,14 @@ public class Engine {
                 entity.getComponents()
                         .subscribeOn(Schedulers.immediate())
                         .subscribe(component -> {
-                                    final MutableBag<ChronoBox> bag = componentToStorageMap.get(component.getClass());
-
-                                    if (bag == null) {
-                                        throwNewUnmanagedComponentAddedException(entity, component);
-                                    } else {
-                                        if (!bag.contains(entity.components.get(component.getClass()))) {
-                                            bag.add(new ChronoBox(component));
+                                    synchronized (componentToStorageMap.get(component.getClass())) {
+                                        final MutableBag<ChronoBox> bag = componentToStorageMap.get(component.getClass());
+                                        if (bag == null) {
+                                            throwNewUnmanagedComponentAddedException(entity, component);
+                                        } else {
+                                            if (!bag.contains(entity.components.get(component.getClass()))) {
+                                                bag.add(new ChronoBox(component));
+                                            }
                                         }
                                     }
                                 },
@@ -141,7 +154,7 @@ public class Engine {
         }
     }
 
-    public final void addEntity(Entity ... entities) {
+    public final void addEntity(Entity... entities) {
         for (Entity entity : entities) {
             addEntity(entity);
         }
@@ -174,13 +187,12 @@ public class Engine {
                 .build();
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
     public static class Builder {
 
         private final MutableBag<EntitySystem> systems = Bags.mutable.empty();
+
+        private Builder() {
+        }
 
         public Builder addSystem(EntitySystem system) {
 
@@ -197,7 +209,7 @@ public class Engine {
             return this;
         }
 
-        public Builder addSystem(EntitySystem ... systems) {
+        public Builder addSystem(EntitySystem... systems) {
             for (EntitySystem system : systems) {
                 addSystem(system);
             }
@@ -208,50 +220,28 @@ public class Engine {
             return new Engine(systems);
         }
 
-        private Builder() { }
-
     }
 
-    private static void throwNewConflictingComponentOwnershipException(EntitySystem system) {
-        final String warningString = String.format(
-                "Conflicting ownership of component {} when adding system {}",
-                system.owns().toString(),
-                system.toString()
-        );
-
-        log.error(warningString);
-        throw new RuntimeException(warningString);
-    }
-
-    private static void throwNewUnmanagedComponentAddedException(Entity entity, Component component) {
-        final String errorMsg = "Engine attempted to add entity containing a component" +
-                " not owned by any system contained in the engine." +
-                "Entity: {}\n Component: {}\n";
-
-        log.error(errorMsg, entity.toString(), component.toString());
-        throw new RuntimeException(errorMsg);
-    }
-
-    public enum MemoryStrategy {
-        AS_NEEDED,
-        GROW_LINEARLY_NEVER_SHRINK,
-        GROW_AND_SHRINK_LINEARLY,
-        GROW_BY_DOUBLING_NEVER_SHRINK,
-        GROW_AND_SHRINK_BY_DOUBLING
-    }
-
-    public enum MemoryHints {
-        ENTITIES_NEVER_ADDED_OR_DELETED_AFTER_LOAD,
-    }
-
-    public enum PerformanceStrategy {
-        PRIORITIZE_BATTERY_AND_ENERGY_USAGE,
-        PRIORITIZE_SPEED_AND_SMOOTHNESS
-    }
-
-    public enum PerformanceHints {
-
-    }
+//    public enum MemoryStrategy {
+//        AS_NEEDED,
+//        GROW_LINEARLY_NEVER_SHRINK,
+//        GROW_AND_SHRINK_LINEARLY,
+//        GROW_BY_DOUBLING_NEVER_SHRINK,
+//        GROW_AND_SHRINK_BY_DOUBLING
+//    }
+//
+//    public enum MemoryHints {
+//        ENTITIES_NEVER_ADDED_OR_DELETED_AFTER_LOAD,
+//    }
+//
+//    public enum PerformanceStrategy {
+//        PRIORITIZE_BATTERY_AND_ENERGY_USAGE,
+//        PRIORITIZE_SPEED_AND_SMOOTHNESS
+//    }
+//
+//    public enum PerformanceHints {
+//
+//    }
 
 
 }

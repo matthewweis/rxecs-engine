@@ -7,7 +7,6 @@ import com.gs.collections.impl.factory.Maps;
 import com.gs.collections.impl.factory.Sets;
 import reactor.core.publisher.Flux;
 import reactor.util.annotation.NonNull;
-import reactor.util.annotation.Nullable;
 
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -16,7 +15,8 @@ public final class MutableEntity implements Entity {
 
     final MutableMap<Class<? extends Component>, ChronoBox> components = Maps.mutable.empty();
 
-    public MutableEntity() { }
+    public MutableEntity() {
+    }
 
     @Override
     public Flux<Component> getComponents() {
@@ -28,7 +28,6 @@ public final class MutableEntity implements Entity {
     }
 
     /**
-     *
      * @param component the new component to include. Only one per class will be kept for an entity.
      * @return the last (now removed) component if one was removed to add the new component
      */
@@ -51,7 +50,7 @@ public final class MutableEntity implements Entity {
 
     }
 
-    public void addComponent(Engine engine, @NonNull Component ... components) {
+    public void addComponent(Engine engine, @NonNull Component... components) {
         for (Component component : components) {
             addComponent(component, engine);
         }

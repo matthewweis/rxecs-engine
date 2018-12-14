@@ -2,13 +2,12 @@ package edu.ksu.rxecs.core.ecs;
 
 /**
  * health: gravitySystem, buffSystem, debuffSystem, bulletSystem...
- *
+ * <p>
  * systems need to be able to depend ON other systems, but ordering all systems reduce parallelism
- *  --> can easily create circular dependencies
- *  --> solution: allow "TerminalSystem" which is computed after Systems, but can only depend on other Systems, not TerminalSystems
- *
- *  * if system provides a component to handle, it must automatically loop over that component
- *
+ * --> can easily create circular dependencies
+ * --> solution: allow "TerminalSystem" which is computed after Systems, but can only depend on other Systems, not TerminalSystems
+ * <p>
+ * * if system provides a component to handle, it must automatically loop over that component
  */
 public abstract class EntitySystem {
 
@@ -23,7 +22,8 @@ public abstract class EntitySystem {
     /**
      * Override this method for code to be executed before {@link #update(Component, EntitySnapshot, float)}.
      */
-    protected void beforeUpdate() { }
+    protected void beforeUpdate() {
+    }
 
     /**
      * Executed on each update.
@@ -33,19 +33,22 @@ public abstract class EntitySystem {
     /**
      * Override this method for code to be executed after {@link #update(Component, EntitySnapshot, float)}.
      */
-    protected void afterUpdate() { }
+    protected void afterUpdate() {
+    }
 
     /**
      * Executed when paused.
      * (Does not execute if {@link #pause()} is called while {@link EntitySystem} is already paused.
      */
-    protected void doWhenPaused() { }
+    protected void doWhenPaused() {
+    }
 
     /**
      * Executed on resumed.
      * (Does not execute if {@link #resume()} ()} is called while {@link EntitySystem} is not paused.
      */
-    protected void doWhenResumed() { }
+    protected void doWhenResumed() {
+    }
 
     public boolean isPaused() {
         return isPaused;

@@ -14,9 +14,9 @@ public class MovementSystem extends EntitySystem {
     @Override
     protected void update(Component ownedComponent, EntitySnapshot snapshot, float dt) {
         final PositionComponent geom = (PositionComponent) ownedComponent;
-        geom.x += geom.dx * dt;
-        geom.y += geom.dy * dt;
-        geom.z += geom.dz * dt;
+        geom.x = geom.dx * dt; // treating x, y, and z as a time-normalized dx, dy, and dz for the purpose of demo
+        geom.y = geom.dy * dt;
+        geom.z = geom.dz * dt;
     }
 
 }

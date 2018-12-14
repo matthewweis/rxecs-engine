@@ -3,7 +3,6 @@ package edu.ksu.rxecs.jme.core.systems;
 import edu.ksu.rxecs.core.ecs.Component;
 import edu.ksu.rxecs.core.ecs.EntitySnapshot;
 import edu.ksu.rxecs.core.ecs.EntitySystem;
-import edu.ksu.rxecs.jme.core.components.PositionComponent;
 import edu.ksu.rxecs.jme.core.components.ScaleComponent;
 
 public class SizeSystem extends EntitySystem {

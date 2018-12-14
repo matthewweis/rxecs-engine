@@ -3,12 +3,12 @@ package edu.ksu.rxecs.jme.core.components;
 import edu.ksu.rxecs.core.ecs.Component;
 
 public class PositionComponent extends Component {
+    public final float dx = 0.5f - (float) Math.random();
+    public final float dy = 0.5f - (float) Math.random();
+    public final float dz = 0.5f - (float) Math.random();
     public float x = 0.0f;
     public float y = 0.0f;
     public float z = 0.0f;
-    public final float dx = (float) Math.random();
-    public final float dy = (float) Math.random();
-    public final float dz = (float) Math.random();
 
     @Override
     public String toString() {

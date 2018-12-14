@@ -2,10 +2,17 @@ package edu.ksu.rxecs.core;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.annotation.Nullable;
 
 import java.util.function.Function;
 
+/**
+ * Stage was based on an earlier concept of creating "stages" which allowed for some forms of serialization while
+ * still keeping the update cycle mostly parallel. This ended up being confusing and didn't provide any functionality
+ * which couldn't be achieved under the current system.
+ *
+ * @param <T>
+ * @param <R>
+ */
 public abstract class Stage<T, R> {
 
     private final Flux<Stage<?, T>> upstream;

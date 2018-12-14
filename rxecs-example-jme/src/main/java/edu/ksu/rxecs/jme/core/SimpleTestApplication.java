@@ -9,24 +9,11 @@ import com.jme3.system.AppSettings;
 
 public class SimpleTestApplication extends SimpleApplication {
 
-    // use -XstartOnFirstThread as VM arg on mac
-
-    @Override
-    public void simpleInitApp() {
-        final Box box = new Box(1, 1, 1);
-        final Geometry geom = new Geometry("Box", box);
-        final Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", ColorRGBA.Blue);
-        geom.setMaterial(mat);
-        rootNode.attachChild(geom);
-    }
+    // IMPORTANT: IF ON MAC, RUN WITH VM ARG: -XstartOnFirstThread
 
     public static void main(String[] args) {
         final SimpleApplication app = new SimpleTestApplication();
-//        fixMacOSXRenderingThreadIssue(app);
         applySettings(app);
-//        java.awt.Toolkit.getDefaultToolkit();
-//        Configuration.GLFW_CHECK_THREAD0.set(false);
         app.start(false);
     }
 
@@ -39,11 +26,13 @@ public class SimpleTestApplication extends SimpleApplication {
         app.setSettings(settings);
     }
 
-//    public static void fixMacOSXRenderingThreadIssue(SimpleApplication app) {
-//        final AppSettings settings = new AppSettings(true);
-////        settings.setRenderer(AppSettings.JOGL_OPENGL_BACKWARD_COMPATIBLE);
-//        settings.setRenderer(AppSettings.LWJGL_OPENGL33);
-////        settings.setAudioRenderer(AppSettings.JOAL);
-//        app.setSettings(settings);
-//    }
+    @Override
+    public void simpleInitApp() {
+        final Box box = new Box(1, 1, 1);
+        final Geometry geom = new Geometry("Box", box);
+        final Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.Blue);
+        geom.setMaterial(mat);
+        rootNode.attachChild(geom);
+    }
 }

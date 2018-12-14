@@ -16,7 +16,7 @@ public abstract class Component implements Cloneable {
     public final Object clone() {
         try {
             return super.clone();
-        } catch(Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }
